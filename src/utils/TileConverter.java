@@ -51,6 +51,49 @@ public class TileConverter {
         System.out.println("OK");
     }
 
+    // TMS切片y的编号翻转
+    public static void tmsReverseY(String inputPath, String outputPath) throws IOException {
+        File tmsFile = new File(inputPath);
+        File[] zFiles = tmsFile.listFiles();    // 获取所有的Z
+        for (File zFile: zFiles) {
+            // z
+            String zName = zFile.getName();
+            System.out.println(zName);
+            // x
+            for (File xFile: zFile.listFiles()) {
+                String xName = xFile.getName();
+                //y
+                for (File yFile : xFile.listFiles()) {
+                    String yName = yFile.getName();
+//                    System.out.println(yName);
+                    String[] temp = yName.split("[.]");
+                    String yPrefix = temp[0];//名称
+                    String ySuffix = temp[1];//后缀
+                    //重新计算y ----newY = (2^n-1)-y
+                    int newY =(int)Math.pow(2,Integer.parseInt(zName))-1-Integer.parseInt(yPrefix);
+                    String newYName = newY+"."+ySuffix;
+
+
+                    String oldPath = yFile.getAbsolutePath();
+                    String newPath = outputPath + "\\" + zName + "\\" + xName + "\\" + newYName;
+                    File oldFile = new File(oldPath);
+                    File newFile = new File(newPath);
+                    if(!(newFile.getParentFile().exists())){
+                        newFile.getParentFile().mkdirs();
+                    }
+                    if(newFile.exists()){       //如果存在这个文件就删除，否则就创建
+                        newFile.delete();
+                    }else{
+                        newFile.createNewFile();
+                    }
+                    copyFileUsingFileChannels(oldFile, newFile);
+
+                }
+            }
+        }
+        System.out.println("OK");
+    }
+
     //文件复制
     private static void copyFileUsingFileChannels(File source, File dest)
             throws IOException {
